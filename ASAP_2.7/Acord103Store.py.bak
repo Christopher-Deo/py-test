@@ -1,0 +1,359 @@
+"""
+
+  Facility:         ILS
+
+  Module Name:      Acord103Store
+
+  Version:
+      Software Version:          Python version 2.7
+
+      Copyright 2019, Clinical Reference Laboratory.  All Rights Reserved.
+
+  Abstract:
+      This script contains the ASAPAcord103Store class that wraps the
+      asap_acord103 table.  Also included is the ASAPAcord103Record class
+      that is returned by accessors.
+
+  Author:
+      Jarrod Wild
+
+  Creation Date:
+      29-Oct-2008
+
+  Modification History:
+
+      07-Oct-2010   amw     Ticket # 17221
+          Added 103 Tracking id and transRefGuid as methods to retrieve/write Acord 103 files and retrieve their values.
+
+      17-Feb-2011   amw     Ticket #
+          Added return boolean for setactive/setinactive to indicate if rows where updated
+
+      13-Jul-2011   amw     Ticket # 24252
+          fixed ASAPAcord103Store.__getRecords to populate transRefGuid correctly.
+
+      27-Sep-2019   jbn     SCTASK0021398
+          Migrating ASAP to new apphub
+          Upgrade to Python 2.7
+
+"""
+from __future__ import division, absolute_import, with_statement, print_function
+import base64
+import datetime
+import os
+from ILS.AcordXML import AcordXMLParser
+
+
+class ASAPAcord103Record(object):
+
+    def __init__(self):
+        self.trackingId = ''
+        self.policyNumber = ''
+        self.xmlData = ''
+        self.trackingId103 = ''
+        self.transRefGuid = ''
+        self.dateReceived = None  # type: datetime.datetime|None
+        self.retrieve = 0         # bit flag
+        self.active = 1           # bit flag
+
+    def __repr__(self):
+        sNot = ''
+        if self.retrieve:
+            sNot = 'not '
+        sDate = ''
+        if self.dateReceived:
+            sDate = self.dateReceived.strftime("%d-%b-%Y %H:%M:%S")
+        return ("<{trackingId!s:s} / {policyNumber!s:s} / {trackingId103!s:s} / {transRefGuid!s:s} / received {sDate!s:s} / {sNot!s:s}retrieved>"
+                .format(trackingId=self.trackingId,
+                        policyNumber=self.policyNumber,
+                        trackingId103=self.trackingId103,
+                        transRefGuid=self.transRefGuid,
+                        sDate=sDate,
+                        sNot=sNot))
+
+
+class ASAPAcord103Store(object):
+
+    def __init__(self, logger=None):
+        if not logger:
+            import CRLUtility
+            self._logger = CRLUtility.CRLGetLogger()
+        else:
+            self._logger = logger
+        self.__xmitConfig = None
+        self.__cursor = None
+
+    def _getXmitConfig(self):
+        if not self.__xmitConfig:
+            from .Utility import ASAP_UTILITY
+            self.__xmitConfig = ASAP_UTILITY.getXmitConfig()
+        return self.__xmitConfig
+
+    def _getCursor(self):
+        if not self.__cursor:
+            config = self._getXmitConfig()
+            self.__cursor = config.getCursor(config.DB_NAME_XMIT)
+        return self.__cursor
+
+    def __getRecords(self, whereClause, fActive=True):
+        """
+
+        :param str whereClause:
+        :param bool fActive:
+        :rtype: list[ASAPAcord103Record]
+        """
+        acordRecs = []
+        active = 0
+        if fActive:
+            active = 1
+        sQuery = '''
+            select trackingid, polnumber, trackingid103, transrefguid, datereceived, retrieve, acord103
+            from asap_acord103 with (nolock)
+            where {whereClause!s:s}
+            and active = {active:d}
+            order by datereceived desc
+            '''.format(whereClause=whereClause, active=active)
+        xmitConfig = self._getXmitConfig()
+        xmitConfig.reconnect(xmitConfig.DB_NAME_XMIT)  # for some reason, this is necessary to be able to read the Acord103 field
+        cursor = self._getCursor()
+        self._logger.info(sQuery)
+        cursor.execute(sQuery)
+        recs = cursor.fetch()
+        cursor.rollback()
+        if recs:
+            for rec in recs:
+                acordRec = ASAPAcord103Record()
+                (acordRec.trackingId, acordRec.policyNumber,
+                 acordRec.trackingId103, acordRec.transRefGuid,
+                 acordRec.dateReceived, acordRec.retrieve, acordRec.xmlData) = rec
+                acordRec.xmlData = base64.decodestring(acordRec.xmlData)
+
+                acordRec.retrieve = int(acordRec.retrieve)
+                acordRec.active = active
+                acordRecs.append(acordRec)
+        return acordRecs
+
+    def getByTrackingId103(self, trackingId103, fActive=True):
+        """
+        Return list of ASAPAcord103Record objects for 103 tracking ID,
+        if they exist.  List is ordered by date received, most recent first.
+        """
+        return self.__getRecords("trackingid103 = '{trackingId103!s:s}'".format(trackingId103=trackingId103), fActive)
+
+    def getByTransRefGuid(self, transRefGuid, fActive=True):
+        """
+        Return list of ASAPAcord103Record objects for transRefGuid,
+        if they exist.  List is ordered by date received, most recent first.
+        """
+        return self.__getRecords("transrefguid = '{transRefGuid!s:s}'".format(transRefGuid=transRefGuid), fActive)
+
+    def getByTrackingId(self, trackingId, fActive=True):
+        """
+        Return list of ASAPAcord103Record objects for tracking ID,
+        if they exist.  List is ordered by date received, most recent first.
+        """
+        return self.__getRecords("trackingid = '{trackingId!s:s}'".format(trackingId=trackingId), fActive)
+
+    def getByPolicyNumber(self, policyNumber, fActive=True):
+        """
+        Return list of ASAPAcord103Record objects that match
+        the policy number.  List is ordered by date received, most recent first.
+        """
+        return self.__getRecords("polnumber = '{policyNumber!s:s}'".format(policyNumber=policyNumber), fActive)
+
+    def add103File(self, acord103Path):
+        """
+        This method assumes the 103 file is named "<trackingid>.XML".
+        If the record is added successfully, an ASAPAcord103Record is returned.
+        """
+        acordRec = None
+        try:
+            trackingId = os.path.basename(acord103Path).split('.')[0]
+            parser = AcordXMLParser()
+            handler = parser.parse(acord103Path)
+            errorHandler = parser.getErrorHandler()
+            if errorHandler.errors:
+                raise errorHandler.errors[0]
+            txLifeObject = handler.txList[0]
+
+            policyNumber = txLifeObject.getElement('ACORDInsuredHolding.Policy.PolNumber')
+            if policyNumber:
+                policyNumber = policyNumber.value
+            else:
+                policyNumber = ''
+
+            transRefGuid = txLifeObject.getElement('TXLifeRequest.TransRefGUID')
+            if transRefGuid:
+                transRefGuid = transRefGuid.value
+            else:
+                transRefGuid = ''
+
+            trackingId103 = txLifeObject.getElement('ACORDInsuredHolding.Policy.ApplicationInfo.TrackingID')
+            if trackingId103:
+                trackingId103 = trackingId103.value
+            else:
+                trackingId103 = ''
+
+            ptr = open(acord103Path, 'r')
+            xmlData = ptr.read()
+            ptr.close()
+            xml64 = base64.encodestring(xmlData)
+            today = datetime.datetime.today()
+            cursor = self._getCursor()
+            cursor.execute('''
+                insert into asap_acord103(trackingid, polnumber, TrackingID103, TransRefGuid, acord103, datereceived, retrieve, active) values
+                ('{trackingId!s:s}', '{policyNumber!s:s}', '{trackingId103!s:s}', '{transRefGuid!s:s}', '{xml64!s:s}', '{today:%d-%b-%Y %H:%M:%S}', 1, 1)
+                '''.format(trackingId=trackingId, policyNumber=policyNumber, trackingId103=trackingId103, transRefGuid=transRefGuid, xml64=xml64, today=today))
+            cursor.commit()
+            acordRec = ASAPAcord103Record()
+            acordRec.trackingId = trackingId
+            acordRec.policyNumber = policyNumber
+            acordRec.xmlData = xmlData
+            acordRec.dateReceived = today
+            acordRec.retrieve = 1
+        except Exception:
+            self._logger.warn("Failed to insert record for file {acord103Path!s:s}: ".format(acord103Path=acord103Path), exc_info=True)
+        return acordRec
+
+    def writeToFile(self, acord103Record, filePath, fMarkRetrieved=False):
+        """
+        Writes the XML data in the record to a file named <trackingid>.XML
+        in the path specified by filePath.
+        """
+        xmlFile = os.path.join(filePath, '{trackingid!s:s}.XML'.format(trackingid=acord103Record.trackingId))
+        ptr = open(xmlFile, 'w')
+        ptr.write(acord103Record.xmlData)
+        ptr.close()
+        if fMarkRetrieved:
+            self.setToRetrieve(acord103Record, False)
+        return xmlFile
+
+    def writeMostRecentByTrackingId(self, trackingId, filePath, fMarkRetrieved=False):
+        """
+        Lookup by tracking ID, and write the most recent XML data out to a file
+        named <trackingid>.XML.  If found, the full path and file name are
+        returned, otherwise None is returned.
+        """
+        xmlFile = None
+        acordRecs = self.getByTrackingId(trackingId)
+        if len(acordRecs):
+            xmlFile = self.writeToFile(acordRecs[0], filePath, fMarkRetrieved)
+        return xmlFile
+
+    def writeMostRecentByPolicyNumber(self, policyNumber, filePath, fMarkRetrieved=False):
+        """
+        Lookup by policy number, and write the most recent XML data out to a file
+        named <trackingid>.XML.  If found, the full path and file name are
+        returned, otherwise None is returned.
+        """
+        xmlFile = None
+        acordRecs = self.getByPolicyNumber(policyNumber)
+        if len(acordRecs):
+            xmlFile = self.writeToFile(acordRecs[0], filePath, fMarkRetrieved)
+        return xmlFile
+
+    def writeMostRecentByTransRefGuid(self, transRefGuid, filePath, fMarkRetrieved=False):
+        """
+        Lookup by TransRefGuid, and write the most recent XML data out to a file
+        named <trackingid>.XML.  If found, the full path and file name are
+        returned, otherwise None is returned.
+        """
+        xmlFile = None
+        acordRecs = self.getByTransRefGuid(transRefGuid)
+        if len(acordRecs):
+            xmlFile = self.writeToFile(acordRecs[0], filePath, fMarkRetrieved)
+        return xmlFile
+
+    def writeMostRecentByTrackingId103(self, trackingId103, filePath, fMarkRetrieved=False):
+        """
+        Lookup by 103 TrackingId, and write the most recent XML data out to a file
+        named <trackingid>.XML.  If found, the full path and file name are
+        returned, otherwise None is returned.
+        """
+        xmlFile = None
+        acordRecs = self.getByTrackingId103(trackingId103)
+        if len(acordRecs):
+            xmlFile = self.writeToFile(acordRecs[0], filePath, fMarkRetrieved)
+        return xmlFile
+
+    def __setActive(self, acord103Record, fActive=True):
+        """
+
+        :param ASAPAcord103Record acord103Record:
+        :param bool fActive:
+        """
+        active = 0
+        if fActive:
+            active = 1
+        cursor = self._getCursor()
+        iret = cursor.execute('''
+            update asap_acord103 set active = {active:d}
+            where trackingid = '{trackingId!s:s}' and datereceived = '{date_recd:%d-%b-%Y %H:%M:%S}'
+            '''.format(active=active,
+                       trackingId=acord103Record.trackingId,
+                       date_recd=acord103Record.dateReceived))
+        cursor.commit()
+        acord103Record.active = active
+        return iret
+
+    def markActive(self, acord103Record):
+        """
+        Reactivate an ACORD 103 record when necessary.
+
+        :param ASAPAcord103Record acord103Record:
+        """
+        if self.__setActive(acord103Record) >= 1:
+            return True
+        else:
+            return False
+
+    def markInactive(self, acord103Record):
+        """
+        Deactivate an ACORD 103 record as though we never received it,
+        so that we can still keep it for audit trail purposes.
+
+        :param ASAPAcord103Record acord103Record:
+        """
+        if self.__setActive(acord103Record, False) >= 1:
+            return True
+        else:
+            return False
+
+    def setToRetrieve(self, acord103Record, fRetrieve=True):
+        """
+        Set retrieve flag for ACORD 103 to be pulled (indicating a
+        retransmit of some sort), or switch off when ACORD 103 has
+        been retrieved.
+
+        :param ASAPAcord103Record acord103Record:
+        :param bool fRetrieve:
+        """
+        retrieve = 0
+        if fRetrieve:
+            retrieve = 1
+        cursor = self._getCursor()
+        cursor.execute('''
+            update asap_acord103 set retrieve = {retrieve:d}
+            where trackingid = '{trackingId!s:s}' and datereceived = '{date_recd:%d-%b-%Y %H:%M:%S}'
+            '''.format(retrieve=retrieve,
+                       trackingId=acord103Record.trackingId,
+                       date_recd=acord103Record.dateReceived))
+        cursor.commit()
+        acord103Record.retrieve = retrieve
+
+    def setPolicyNumber(self, policyNumber, acord103Record):
+        """
+        Update PolicyNumber for an Acord 103 record
+
+        :param str policyNumber:
+        :param ASAPAcord103Record acord103Record:
+        """
+        if policyNumber != acord103Record.policyNumber:
+            cursor = self._getCursor()
+            cursor.execute('''
+                update asap_acord103 set polnumber = '{policyNumber!s:s}'
+                where trackingid = '{trackingId!s:s}' and datereceived = '{date_recd:%d-%b-%Y %H:%M:%S}'
+                '''.format(policyNumber=policyNumber,
+                           trackingId=acord103Record.trackingId,
+                           date_recd=acord103Record.dateReceived))
+            cursor.commit()
+            acord103Record.policyNumber = policyNumber
