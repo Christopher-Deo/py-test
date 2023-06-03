@@ -200,7 +200,7 @@ class MNMTransmitHandler( ASAPTransmitHandler ):
         fSuccess = True
         fromToMoves = []
         # now try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         processedSubdir = ASAP.xmitConfig.getSetting(
             ASAP.xmitConfig.SETTING_PROCESSED_SUBDIR )
         # map single-page images by doctype -> {'3': (transactIdx, batchId, [file1.tif,file2.tif,...])}
@@ -259,7 +259,7 @@ class MNMTransmitHandler( ASAPTransmitHandler ):
                 self._getLogger().warn(
                     'Failed to find matching index/image pair for docid %s (sid %s).'
                     % (doc.getDocumentId(), case.sid) )
-        for docType in docTypeFileMap.keys():
+        for docType in list(docTypeFileMap.keys()):
             idxData, batchId, filelist = docTypeFileMap[docType]
             fSuccess = self.__buildDocumentZip( idxData, batchId, filelist ) and fSuccess            
         return fSuccess

@@ -30,7 +30,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import CRLUtility
 import unicodedata
 
@@ -170,7 +170,7 @@ class ASAPIndexField(object):
         :param str|unicode sValue:
         """
         fSuccess = False
-        if isinstance(sValue, (str, unicode)):
+        if isinstance(sValue, str):
             sValue = sValue.strip()
             if sValue:
                 try:

@@ -26,7 +26,7 @@
       Migration to new apphub and updating to python 2.7
 
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from ILS.ASAP.Utility import ASAP_UTILITY
 from ILS.ASAP.IndexHandler import ASAPIndexHandler
 from ILS.ASAP.TransmitHandler import ASAPTransmitHandler
@@ -120,7 +120,7 @@ class MOOTransmitHandler(ASAPTransmitHandler):
         fSuccess = True
         fromToMoves = []
         # now try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
         for doc in documents:

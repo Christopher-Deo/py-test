@@ -23,7 +23,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import CRLUtility
 from .Case import ASAPCase
 from .Document import ASAPDocument
@@ -234,4 +234,4 @@ class ASAPCaseFactory(object):
             else:
                 self.__logger.warn(
                     'Unable to find document for docid {docid:d}.'.format(docid=doc.getDocumentId()))
-        return caseDict.values()
+        return list(caseDict.values())

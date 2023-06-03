@@ -45,7 +45,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import DevInstance
 
 # devState = DevInstance.devInstance(True)
@@ -655,7 +655,7 @@ def getAsapNeedingReconciliation(logger, reconDate):
             cases = caseFact.casesForDocuments(docList)
             logger.info('found {count:d} distinct cases'.format(count=len(cases)))
             for case in cases:
-                docList = case.getDocuments().values()
+                docList = list(case.getDocuments().values())
                 appDocList = docList
                 for doc in docList:
                     if reconContact.docTypeNameMap[doc.getDocTypeName()] == 'APPI':

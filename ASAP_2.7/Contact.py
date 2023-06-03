@@ -23,7 +23,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from .Index import ASAPIndex
 
 
@@ -72,11 +72,11 @@ class ASAPContact(object):
                                        self.examiner,
                                        self.source_code))))
         docRowFmt = '{docType!s:s}: {docTypeName!s:s} ({docTypeBilling!s:s})'
-        for docType in self.docTypeNameMap.keys():
+        for docType in list(self.docTypeNameMap.keys()):
             print(docRowFmt.format(docType=docType,
                                    docTypeName=self.docTypeNameMap[docType],
                                    docTypeBilling=self.docTypeBillingMap[docType]))
         classRowFmt = '{baseClass!s:s}: {customClass!s:s}'
-        for baseClass in self.customClasses.keys():
+        for baseClass in list(self.customClasses.keys()):
             print(classRowFmt.format(baseClass=baseClass, customClass=str(self.customClasses[baseClass])))
         print('{acordCarrierNames!s:s}'.format(acordCarrierNames=str(self.acordCarrierNames)))

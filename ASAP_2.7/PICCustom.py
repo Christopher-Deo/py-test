@@ -67,7 +67,7 @@
       14-MAY-2021 nelsonj
          Migration to new apphub and updating to python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from ILS.ASAP.Utility import ASAP_UTILITY
 from ILS import AcordXML
 from ILS.ASAP.IndexHandler import ASAPIndexHandler
@@ -274,7 +274,7 @@ class PICTransmitHandler(ASAPTransmitHandler):
                 'Failed to find ACORD 103 for case ({sid!s:s}/{trackingId!s:s}).'
                 .format(sid=case.sid, trackingId=case.trackingId))
         # now try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
         for doc in documents:
@@ -498,7 +498,7 @@ def PICRecon(regionIdIn):
                     fError = True
             cases = caseFactory.casesForDocuments(asapDocuments)
             for case in cases:
-                for doc in case.getDocuments().values():
+                for doc in list(case.getDocuments().values()):
                     docHistory.trackDocument(doc, docHistory.ACTION_RECONCILE)
             if fError:
                 logger.error('There were one or more errors processing file {baseFileName!s:s}.'
@@ -557,7 +557,7 @@ def PICRecon(regionIdIn):
                         sidDocMap[sid] = doclist
                     doclist.append(docid)
 
-                for sid, docids in sidDocMap.items():
+                for sid, docids in list(sidDocMap.items()):
                     case = caseFactory.fromSid(sid)
                     if case:
                         logger.info('Staging ACORD 103 for {trackingId!s:s} to retransmit...'.format(trackingId=case.trackingId))

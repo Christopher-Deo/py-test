@@ -30,7 +30,7 @@
       Migration to new apphub and updating to python 2.7
 
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import DevInstance
 
 # devState = DevInstance.devInstance(True)
@@ -221,7 +221,7 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
         fromToMoves = []
         asapToZipFiles = []
         # try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
         for doc in documents:
@@ -419,7 +419,7 @@ def AGLiteRecon():
             doclist.append((docid, lastdate))
         sMessage = "The following documents were not reconciled by AG and may need to "
         sMessage += "be retransmitted. Please review:\r\n\r\n"
-        keys = sidDocMap.keys()
+        keys = list(sidDocMap.keys())
         keys.sort()
         for contactid, sid in keys:
             trackingid = 'Unknown'

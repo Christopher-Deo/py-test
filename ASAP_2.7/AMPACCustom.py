@@ -45,7 +45,7 @@ class AMPACIndexHandler( ASAPIndexHandler ):
         # the client doc types and special name format for AMPAC:
         # APPII,APPIIAIG002999999.PDF
         case = self._getCase()
-        docs = case.getDocuments().values()
+        docs = list(case.getDocuments().values())
         appendlines = []
         for doc in docs:
             clientDocType = case.contact.docTypeNameMap.get( doc.getDocTypeName() )
@@ -198,7 +198,7 @@ def SendAMPACCaseFiles( xmitdate ):
         docFactory = ASAPDocumentFactory()
         # map AMPAC contact to a list of related cases
         ampacCaseDict = {}
-        for sid in sidDocDict.keys():
+        for sid in list(sidDocDict.keys()):
             case = caseFactory.fromSid( sid )
             if case:
                 # use proper AMPAC contact for this case
@@ -237,7 +237,7 @@ def SendAMPACCaseFiles( xmitdate ):
         # each list of cases
         # allow doc history to track when they are transmitted
         # (might be beneficial later)
-        for contact in ampacCaseDict.keys():
+        for contact in list(ampacCaseDict.keys()):
             if not handler.stageAndTransmitCases( ampacCaseDict[contact],
                                                   contact, [] ):
                 fError = True
@@ -263,8 +263,8 @@ if __name__ == '__main__':
                 xmitdate = CRLUtility.ParseStrDate( arg[sep+1:], True )
             SendAMPACCaseFiles( xmitdate )
         else:
-            print 'Argument(s) not valid. Valid arguments:'
-            print 'transmit[=yyyy-mm-dd]'
+            print('Argument(s) not valid. Valid arguments:')
+            print('transmit[=yyyy-mm-dd]')
         logger.info( 'Time to process this pass was %s seconds.'
                      % (time.time() - begintime) )
     except:

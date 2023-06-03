@@ -230,7 +230,7 @@ class INGTransmitHandler( ASAPTransmitHandler ):
                     'Failed to find ACORD 103 for case (%s/%s).'
                     % (case.sid, case.trackingId) )
         # now try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         processedSubdir = ASAP.xmitConfig.getSetting(
             ASAP.xmitConfig.SETTING_PROCESSED_SUBDIR )
         for doc in documents:
@@ -394,7 +394,7 @@ def INGRecon():
             cases = caseFactory.casesForDocuments( documents )
             docHistory = ASAPDocumentHistory()
             for case in cases:
-                for doc in case.getDocuments().values():
+                for doc in list(case.getDocuments().values()):
                     docHistory.trackDocument( doc, docHistory.ACTION_RECONCILE )
             if fError:
                 logger.error( 'There were one or more errors processing file %s.'
@@ -452,8 +452,8 @@ def INGRecon():
             if casedict:
                 sMessage += 'The following document files related to ASAP cases did '
                 sMessage += 'not successfully transmit to ING:\n\n'
-                for case in casedict.values():
-                    docids = str( case.getDocuments().keys() )
+                for case in list(casedict.values()):
+                    docids = str( list(case.getDocuments().keys()) )
                     sMessage += 'Sid %s, Document IDs: "%s"\n' % ( case.sid, docids )
             else:
                 sMessage += 'ING reconciliation of documents related to ASAP cases '
@@ -477,8 +477,8 @@ if __name__ == '__main__':
         if arg == 'recon':
             INGRecon()
         else:
-            print 'Argument(s) not valid. Valid arguments:'
-            print 'recon'
+            print('Argument(s) not valid. Valid arguments:')
+            print('recon')
         logger.info( 'Time to process this pass was %s seconds.'
                      % (time.time() - begintime) )
     except:

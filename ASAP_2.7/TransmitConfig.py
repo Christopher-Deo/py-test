@@ -34,7 +34,7 @@
           Upgrade to Python 2.7
           Moved AG specific FTP Info to the AIGCustom TransmitHandler class
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 
 
 import DevInstance

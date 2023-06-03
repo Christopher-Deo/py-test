@@ -42,7 +42,7 @@
       15-Mar-2016   nelsonj    Ticket 68279
             Bugfix for __addAppToImage retry logic
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from ILS.ASAP.Utility import ASAP_UTILITY
 from ILS.ASAP.TransmitHandler import ASAPTransmitHandler
 import CRLUtility
@@ -180,7 +180,7 @@ class BANTransmitHandler(ASAPTransmitHandler):
                 fSuccess = False
                 self._getLogger().warn('Failed to find ACORD 103 for case ({sid!s:s}/{trackingId!s:s}).'.format(sid=case.sid, trackingId=case.trackingId))
         # try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
         for doc in documents:
@@ -666,7 +666,7 @@ def BANRecon(reconDate=datetime.datetime.today()):
                     detailMap[(sid, docid)] = (contact_id, xmitDate, lname, fname)
             cases = caseFactory.casesForDocuments(docList)
             for case in cases:
-                docList = case.getDocuments().values()
+                docList = list(case.getDocuments().values())
                 appDocList = docList
                 for doc in docList:
                     if reconContact.docTypeNameMap[doc.getDocTypeName()] == 'APPI':

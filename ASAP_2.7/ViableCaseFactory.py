@@ -24,7 +24,7 @@
           Desc
 
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 
 from .ViableCase import ViableCase
 from .QCDocumentFactory import QCDocumentFactory
@@ -343,7 +343,7 @@ class ViableCaseFactory(object):
             sOutput = 'CRL has not received a lab sample'
         elif viableCase.caseQc.state != viableCase.caseQc.STATE_RELEASED:
             sOutput = "The case images have not been released by APPS at this time"
-        elif not viableCase.sample.transmitDate and viableCase.sample.clientId in resultsDependentClientsMap.keys():
+        elif not viableCase.sample.transmitDate and viableCase.sample.clientId in list(resultsDependentClientsMap.keys()):
             sOutput = 'Lab results are not yet ready for this case (required for {clientId!s:s})'.format(clientId=resultsDependentClientsMap[viableCase.sample.clientId])
         elif viableCase.sample.clientId == 'ORP':
             sOutput = 'Sample is coded to ORP in CRL\'s system'

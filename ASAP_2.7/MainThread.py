@@ -23,7 +23,7 @@
 
 """
 # import sets
-from __future__ import division, absolute_import, with_statement, print_function
+
 import time
 
 from ILS.ASAP.Utility import ASAP_UTILITY
@@ -52,7 +52,7 @@ def run():
         mainHandler.reportPreExportedCases()
         # process all configured ASAP contacts, then do a join on each thread
         contactThreads = []
-        for contact in contacts.values():
+        for contact in list(contacts.values()):
             contactThread = ASAPContactThread(contact, logger)
             contactThreads.append(contactThread)
         # use a thread pool of size 5

@@ -41,7 +41,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from .Utility import ASAP_UTILITY
 devState = ASAP_UTILITY.devState
 import CRLUtility
@@ -347,7 +347,7 @@ class ASAPMainHandler(object):
                             asapMismatchList.append((sid, clientId, regionId, fHold))
                 if releasedDocDict:
                     # build ASAPDocument objects from docids, then build ASAPCase objects
-                    for sid in releasedDocDict.keys():
+                    for sid in list(releasedDocDict.keys()):
                         case = CASE_FACTORY.fromSid(sid)
                         if case:
                             docids = releasedDocDict[sid]
@@ -443,7 +443,7 @@ class ASAPMainHandler(object):
                 acordRec = acordRecs[0]
                 fWriteFile = True
                 if not acordRec.retrieve:
-                    docids = [str(docid) for docid in asapCase.getDocuments().keys()]
+                    docids = [str(docid) for docid in list(asapCase.getDocuments().keys())]
                     modCount = 0
                     if docids:
                         qc = XMIT_CONFIG.getCursor(XMIT_CONFIG.DB_NAME_DELTA_QC)
@@ -498,13 +498,13 @@ class ASAPMainHandler(object):
         if not self.__fError:
             # use ASAPImageFactory to build images for each document object in case
             imageFactory = ASAPImageFactory()
-            for asapDocument in asapCase.getDocuments().values():
+            for asapDocument in list(asapCase.getDocuments().values()):
                 if not imageFactory.fromDocument(asapDocument):
                     self.__fError = True
                     break
         # if successful, mark the images as exported and note "released" in history
         if not self.__fError:
-            for asapDocument in asapCase.getDocuments().values():
+            for asapDocument in list(asapCase.getDocuments().values()):
                 self.setExportFlag(asapDocument, self.DOC_EXPORTED_YES)
                 DOCUMENT_HISTORY.trackDocument(asapDocument, DOCUMENT_HISTORY.ACTION_RELEASE)
             fSuccess = True
@@ -516,7 +516,7 @@ class ASAPMainHandler(object):
                                             acord103FileName)
                 if os.path.isfile(local103File):
                     CRLUtility.CRLDeleteFile(local103File)
-            for asapDocument in asapCase.getDocuments().values():
+            for asapDocument in list(asapCase.getDocuments().values()):
                 localDocFile = os.path.join(asapCase.contact.document_dir,
                                             asapDocument.fileName)
                 if os.path.isfile(localDocFile):
@@ -533,7 +533,7 @@ class ASAPMainHandler(object):
     def reportPreExportedCases(self):
         if self.__preExportedCasesList:
             casesByExaminer = {}
-            for examiner, examinerConfig in examiners.items():
+            for examiner, examinerConfig in list(examiners.items()):
                 sourceCodeRegex = re.compile(r'{source_code!s:s}\w+'.format(source_code=examinerConfig['SOURCE_CODE']))
                 casesByExaminer[examiner] = []
                 for case in self.__preExportedCasesList:
@@ -541,7 +541,7 @@ class ASAPMainHandler(object):
                     if sourceCodeRegex.match(sourceCode.strip()):
                         casesByExaminer[examiner].append(case)
 
-            for examiner, cases in casesByExaminer.items():
+            for examiner, cases in list(casesByExaminer.items()):
                 if cases:
                     examinerConfig = examiners[examiner]
                     sMsg = examinerConfig['EMAIL_BODY']
@@ -549,7 +549,7 @@ class ASAPMainHandler(object):
                         carrier = ASAP_UTILITY.getCarrierCodeForCase(case)
                         sMsg += ('\r\n\r\nNew documents for case #{trackingId!s:s} (Carrier Code {carrier!s:s}, CRL ID {sid!s:s}):'
                                  .format(trackingId=case.trackingId, carrier=carrier, sid=case.sid))
-                        docids = case.getDocuments().keys()
+                        docids = list(case.getDocuments().keys())
                         docids.sort()
                         for docid in docids:
                             sMsg += '\r\n%s' % (case.getDocuments()[docid].getDocTypeName())
@@ -782,7 +782,7 @@ class ASAPMainHandler(object):
             # map billing code to service count
             billingInfo = {}
             docsNotBilled = []
-            for asapDocument in asapCase.getDocuments().values():
+            for asapDocument in list(asapCase.getDocuments().values()):
                 invoiceDate = DOCUMENT_HISTORY.getDateTracked(asapDocument, DOCUMENT_HISTORY.ACTION_INVOICE)
                 if not invoiceDate:
                     billingCode = asapCase.contact.docTypeBillingMap.get(asapDocument.getDocTypeName())
@@ -811,7 +811,7 @@ class ASAPMainHandler(object):
                         .format(docId=asapDocument.getDocumentId(), sid=asapCase.sid,
                                 trackingId=asapCase.trackingId))
                     docsNotBilled.append(asapDocument.getDocumentId())
-            for billingCode in billingInfo.keys():
+            for billingCode in list(billingInfo.keys()):
                 sConfirmQuery = '''
                     select service_count
                     from service_performed
@@ -841,7 +841,7 @@ class ASAPMainHandler(object):
                 limsCursor.execute(sInsert)
                 limsCursor.commit()
             # write to doc history that each document was invoiced
-            for asapDocument in asapCase.getDocuments().values():
+            for asapDocument in list(asapCase.getDocuments().values()):
                 if asapDocument.getDocumentId() not in docsNotBilled:
                     DOCUMENT_HISTORY.trackDocument(asapDocument, DOCUMENT_HISTORY.ACTION_INVOICE)
             fSuccess = True

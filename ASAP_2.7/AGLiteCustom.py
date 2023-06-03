@@ -93,9 +93,9 @@ class AGLiteIndexHandler(ASAPIndexHandler):
         contact = case.contact.contact_id
         print(contact)
         doc = self._getCurrentDocument()
-        print(doc.fileName)
+        print((doc.fileName))
         docName = doc.fileName.split('.')[0]
-        print(case.contact.index.getValue('REQUIRE'))
+        print((case.contact.index.getValue('REQUIRE')))
         print(docName)
         index.setValue('SUBJECT', docName)
         print('In _processDerivedFields AGLite is done')
@@ -119,7 +119,7 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
             # if there are any files here, they were left behind when a previous
             # run failed to complete, so move them to the retransPath folder
             toXmitFiles = fm.glob(os.path.join(xmitStagingPath, '*.*'))
-            print('To transmit files: ', toXmitFiles)
+            print(('To transmit files: ', toXmitFiles))
             for xmitFile in toXmitFiles:
                 CRLUtility.CRLCopyFile(xmitFile.getFullPath(),
                                        os.path.join(retransPath, xmitFile.fileName),
@@ -163,7 +163,7 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
                 # Add this index and corresponding Tiff file to the above named zip files
                 asapZipFile = os.path.join(xmitZipPath, zipFileName)
                 retransTifFile = os.path.splitext(retransIdxFile)[0] + '.tif'
-                print(retransTifFile, retransIdxFile)
+                print((retransTifFile, retransIdxFile))
                 CRLUtility.CRLAddToZIPFile(str(retransIdxFile), asapZipFile, True)
                 CRLUtility.CRLAddToZIPFile(str(retransTifFile), asapZipFile, True)
 
@@ -186,7 +186,7 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
                                       18, 30)
         if today_begin <= now <= today_end:
             fReady = True
-        print('time, ', fReady)
+        print(('time, ', fReady))
         if fReady:
             # check lims transmit date to see if case is
             # ready to xmit
@@ -207,8 +207,8 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
                     if rec and rec[0]:
                         fReady = True
                         break
-                    print('transmit, ', fReady)
-        print('Indexed case ready? ', fReady)
+                    print(('transmit, ', fReady))
+        print(('Indexed case ready? ', fReady))
         print('In AGLiteTransmitHandler _isIndexedCaseReady AGLite done')
         return fReady
 
@@ -233,7 +233,7 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
             if os.path.isfile(docPath) and os.path.isfile(idxPath):
                 xmitDocPath = os.path.join(case.contact.xmit_dir, '{docPrefix!s:s}.tif'.format(docPrefix=docPrefix))
                 xmitIdxPath = os.path.join(case.contact.xmit_dir, '{docPrefix!s:s}.ndx'.format(docPrefix=docPrefix))
-                print('\nXMITDOC & XMITIDX ', xmitDocPath, xmitIdxPath)
+                print(('\nXMITDOC & XMITIDX ', xmitDocPath, xmitIdxPath))
                 asapToZipFiles.append(str(xmitDocPath))
                 asapToZipFiles.append(str(xmitIdxPath))
                 fromToMoves.append((docPath, xmitDocPath))
@@ -277,8 +277,8 @@ class AGLiteTransmitHandler(ASAPTransmitHandler):
                 for asapFile in asapToXmitFiles:
                     CRLUtility.CRLCopyFile(str(asapFile.getFullPath()), os.path.join(retransPath, asapFile.fileName), True, 5)
                     fm.deleteFile(asapFile)
-        print(case.trackingId, case.sid)
-        print('In AGLiteTransmitHandler _stageIndexedCase AGLite is done for case {trackingId!s:s} '.format(trackingId=case.trackingId))
+        print((case.trackingId, case.sid))
+        print(('In AGLiteTransmitHandler _stageIndexedCase AGLite is done for case {trackingId!s:s} '.format(trackingId=case.trackingId)))
         return fSuccess
 
     def _transmitStagedCases(self):

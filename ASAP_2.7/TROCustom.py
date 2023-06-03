@@ -105,7 +105,7 @@
        14-MAY-2021 nelsonj
          Migration to new apphub and updating to python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 
 from ILS.AcordXML import *
 from ILS.ASAP.Utility import ASAP_UTILITY
@@ -211,7 +211,7 @@ class TROIndexHandler(ASAPIndexHandler):
             # replace 'intermediary' index with either version 1 (AWD/RIP) index
             # or version 2 index
             idxFile = idxPaths[0]
-            docs = self._getCase().getDocuments().values()
+            docs = list(self._getCase().getDocuments().values())
             docdates = [CRLUtility.ParseStrDate(doc.getDateCreated(), True) for doc in docs]
             docdates.sort()
             docTypeMap = self._getCase().contact.docTypeNameMap
@@ -412,7 +412,7 @@ class TROTransmitHandler(ASAPTransmitHandler):
                 'Failed to find index file for case ({sid!s:s}/{trackingId!s:s}).'
                 .format(sid=case.sid, trackingId=case.trackingId))
         # now try to get docs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
         for doc in documents:
@@ -938,7 +938,7 @@ def TRORecon():
             #
             cases = caseFactory.casesForDocuments(asapDocuments)
             for case in cases:
-                for doc in case.getDocuments().values():
+                for doc in list(case.getDocuments().values()):
                     docHistory.trackDocument(doc, docHistory.ACTION_RECONCILE)
             if fError:
                 logger.error('There were one or more errors processing file {baseFileName!s:s}.'
@@ -1036,7 +1036,7 @@ def _isWithinTROProcessingWindow(timeTupleIn=time.localtime()):
     6 AM to 12:30 PM CST on Saturday
     """
     returnFlag = False
-    monday, tuesday, wednesday, thursday, friday, saturday, sunday = range(7)
+    monday, tuesday, wednesday, thursday, friday, saturday, sunday = list(range(7))
 
     # break the tuple into its differnt time parts so can compare...
     year, month, day, hour, minute, sec, weekday, yearday, dst = timeTupleIn

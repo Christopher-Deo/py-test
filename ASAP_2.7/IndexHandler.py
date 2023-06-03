@@ -27,7 +27,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import CRLUtility
 import datetime
 import os
@@ -92,7 +92,7 @@ class ASAPIndexHandler(object):
         hist = ASAP_UTILITY.getDocumentHistory()
         xmitRecs = hist.getTrackedDocidsForCase(self.__case, hist.ACTION_TRANSMIT)
         xmitDocids = [docid for docid, auditstamp in xmitRecs]
-        docids = self.__case.getDocuments().keys()
+        docids = list(self.__case.getDocuments().keys())
         for docid in docids:
             if docid in xmitDocids:
                 xmitDocids.remove(docid)
@@ -372,7 +372,7 @@ class ASAPIndexHandler(object):
             sid = self.__case.sid
             cursor = ASAP_UTILITY.getLIMSCursorForSid(sid)
             if cursor:
-                for tableName in tableFieldMap.keys():
+                for tableName in list(tableFieldMap.keys()):
                     fieldList = tableFieldMap[tableName]
                     fieldNames = [refValue for refValue, field in fieldList]
                     sQuery = """
@@ -424,7 +424,7 @@ class ASAPIndexHandler(object):
         """
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
-        for doc in self.__case.getDocuments().values():
+        for doc in list(self.__case.getDocuments().values()):
             docPath = os.path.join(self.__case.contact.document_dir,
                                    doc.fileName)
             processedPath = os.path.join(self.__case.contact.document_dir,
@@ -477,7 +477,7 @@ class ASAPIndexHandler(object):
         if not self.__processAcord103Fields():
             asapCase.contact.index.reset()
             return False
-        docList = asapCase.getDocuments().values()
+        docList = list(asapCase.getDocuments().values())
         for asapDocument in docList:
             self.__currentDocument = asapDocument
             # process the 'deltaqc' fields

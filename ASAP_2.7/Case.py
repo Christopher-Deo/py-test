@@ -24,7 +24,7 @@
           Upgrade to Python 2.7
 
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import os
 import CRLUtility
 from .Contact import ASAPContact
@@ -107,7 +107,7 @@ class ASAPCase(object):
         if self.contact.index.type == self.contact.index.IDX_TYPE_CASE:
             idxFileNames.append('{trackingId!s:s}.IDX'.format(trackingId=self.trackingId))
         else:
-            for doc in self.__documents.values():
+            for doc in list(self.__documents.values()):
                 idxFileNames.append('{filename!s:s}.IDX'.format(filename=doc.fileName.split('.')[0]))
         for idxFileName in idxFileNames:
             idxPath = os.path.join(self.contact.index_dir, idxFileName)
@@ -116,7 +116,7 @@ class ASAPCase(object):
                 if not os.path.exists(errorPath):
                     os.mkdir(errorPath)
                 CRLUtility.CRLCopyFile(idxPath, os.path.join(errorPath, idxFileName), True, 5)
-        for doc in self.__documents.values():
+        for doc in list(self.__documents.values()):
             docPath = os.path.join(self.contact.document_dir, doc.fileName)
             if os.path.isfile(docPath):
                 errorPath = os.path.join(self.contact.document_dir, errorSubfolder)
@@ -134,5 +134,5 @@ class ASAPCase(object):
         print('Contact:')
         self.contact.dbgPrint()
         print('Documents ({doc_count:d}):'.format(doc_count=len(self.__documents)))
-        for document in self.__documents.values():
+        for document in list(self.__documents.values()):
             document.dbgPrint()

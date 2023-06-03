@@ -59,7 +59,7 @@ class GEFTransmitHandler( ASAPTransmitHandler ):
     """    
     def _preStage( self ):
         fSuccess = True
-        print 'In GEF Module'
+        print('In GEF Module')
         contact = self._getContact()
         xmitStagingPath = contact.xmit_dir
         xmitZipPath = os.path.join( xmitStagingPath, 'zip' )
@@ -134,7 +134,7 @@ class GEFTransmitHandler( ASAPTransmitHandler ):
         fSuccess = True
         fromToMoves = []
         # now try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         processedSubdir = ASAP.xmitConfig.getSetting(
             ASAP.xmitConfig.SETTING_PROCESSED_SUBDIR )
         for doc in documents:
@@ -184,7 +184,7 @@ class GEFTransmitHandler( ASAPTransmitHandler ):
             for asapFile in asapToXmitFiles:
                 try:
                     destFile = os.path.join(work_path,os.path.basename(asapFile.getFullPath()).upper())
-                    print 'DestFile' + destFile
+                    print('DestFile' + destFile)
                     # Copy the files to the Genworth regular transmission
                     CRLUtility.CRLCopyFile(asapFile.getFullPath(), destFile)
                     self._getLogger().info( 'Copied %s file to Genworth Work Folder...' % asapFile.getFullPath() )
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     logger = CRLUtility.CRLGetLogger()
     try:
         begintime = time.time()
-        print 'In GEF Module'
+        print('In GEF Module')
         arg = ''
         logger.info( 'Time to process this pass was %s seconds.'
                      % (time.time() - begintime) )

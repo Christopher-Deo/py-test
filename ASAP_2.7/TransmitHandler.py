@@ -29,7 +29,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import CRLUtility
 from .Case import ASAPCase
 from .Contact import ASAPContact
@@ -89,7 +89,7 @@ class ASAPTransmitHandler(object):
         hist = ASAP_UTILITY.getDocumentHistory()
         xmitRecs = hist.getTrackedDocidsForCase(self.__currentCase, hist.ACTION_TRANSMIT)
         xmitDocids = [docid for docid, auditstamp in xmitRecs]
-        docids = self.__currentCase.getDocuments().keys()
+        docids = list(self.__currentCase.getDocuments().keys())
         for docid in docids:
             if docid in xmitDocids:
                 xmitDocids.remove(docid)
@@ -204,7 +204,7 @@ class ASAPTransmitHandler(object):
         # track all documents for all staged cases as ready to transmit
         docHistory = ASAP_UTILITY.getDocumentHistory()
         for asapCase in self.__stagedCases:
-            docs = asapCase.getDocuments().values()
+            docs = list(asapCase.getDocuments().values())
             for asapDoc in docs:
                 docHistory.trackDocument(asapDoc, docHistory.ACTION_TRANSMIT)
             if (self.__contact.contact_id == 'agimtdapps'):

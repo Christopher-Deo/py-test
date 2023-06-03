@@ -24,7 +24,7 @@
           Desc
 
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from .QCDocument import QCDocument
 from CRL.DeltaModel import DeltaDocument, DeltaDocumentFactory
 
@@ -59,7 +59,7 @@ class QCDocumentFactory(DeltaDocumentFactory):
         sidField = ''
         matchedField = ''
         exportedField = ''
-        for fieldid in self._indexMap.keys():
+        for fieldid in list(self._indexMap.keys()):
             if self._indexMap[fieldid] == DeltaDocument.IDX_MATCHED:
                 matchedField = fieldid
             elif self._indexMap[fieldid] == DeltaDocument.IDX_SID:

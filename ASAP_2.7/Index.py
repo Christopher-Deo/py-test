@@ -23,7 +23,7 @@
           Migrating ASAP to new apphub
           Upgrade to Python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 import os
 import CRLUtility
 from .IndexField import ASAPIndexField
@@ -70,7 +70,7 @@ class ASAPIndex(object):
         :param str strVal:
         """
         if strVal:
-            for escSeq in self.__ESCAPE_MAP.keys():
+            for escSeq in list(self.__ESCAPE_MAP.keys()):
                 strVal = strVal.replace(escSeq, self.__ESCAPE_MAP[escSeq])
         return strVal
 
@@ -78,7 +78,7 @@ class ASAPIndex(object):
         """
         Reset all fields
         """
-        for field in self.__fieldMap.values():
+        for field in list(self.__fieldMap.values()):
             field.reset()
 
     def setDelim(self, delim):
@@ -111,7 +111,7 @@ class ASAPIndex(object):
         Return list of field names ordered by sequence in index.
         """
         fieldList = []
-        orderVals = self.__orderMap.keys()
+        orderVals = list(self.__orderMap.keys())
         orderVals.sort()
         for order in orderVals:
             fieldList.append(self.__orderMap[order])

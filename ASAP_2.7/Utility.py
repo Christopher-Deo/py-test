@@ -35,7 +35,7 @@
           Added lots of additional objects to the purview of the ASAPUtility class
           Made object creation as lazy as possible
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 
 import os
 import datetime
@@ -645,7 +645,7 @@ except NameError:
                     if rec:
                         sourceCode, carrierName = rec
                         issueList = []
-                        for contact in self._xmit_config.getContacts().values():
+                        for contact in list(self._xmit_config.getContacts().values()):
                             fClientMatch = False
                             if contact.client_id in newClients:
                                 fClientMatch = True

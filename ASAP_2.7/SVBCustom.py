@@ -42,7 +42,7 @@
       14-MAY-2021 nelsonj
          Migration to new apphub and updating to python 2.7
 """
-from __future__ import division, absolute_import, with_statement, print_function
+
 from .IndexHandler import ASAPIndexHandler
 from .TransmitHandler import ASAPTransmitHandler
 from .Utility import ASAP_UTILITY
@@ -157,7 +157,7 @@ class SVBIndexHandler(ASAPIndexHandler):
             self._getLogger().info('SVB is full transmit')
             return True
 
-        docList = case.getDocuments().values()
+        docList = list(case.getDocuments().values())
         for doc in docList:
             if doc.getDocTypeName() == 'LAB RECEIPT/URINE/BLOOD TEST':
                 self._getLogger().info('SVB not full transmit but has lab report')
@@ -329,7 +329,7 @@ class SVBTransmitHandler(ASAPTransmitHandler):
         fromToMoves = []
 
         # now try to get doc/index pairs
-        documents = case.getDocuments().values()
+        documents = list(case.getDocuments().values())
         xmitConfig = ASAP_UTILITY.getXmitConfig()
         processedSubdir = xmitConfig.getSetting(xmitConfig.SETTING_PROCESSED_SUBDIR)
         for doc in documents:
